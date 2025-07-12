@@ -43,6 +43,11 @@
       padding: 10px 20px;
       margin: 10px;
     }
+    label {
+      font-size: 16px;
+      display: inline-block;
+      margin-top: 10px;
+    }
   </style>
 </head>
 <body>
@@ -63,6 +68,8 @@
     <input id="answerEl" type="text" autocomplete="off"><br>
     <p id="feedbackEl"></p>
     <p id="symbolEl"></p>
+    <p id="timerEl"></p>
+    <label><input type="checkbox" id="errorlessToggle"> Errorless Mode</label>
   </div>
 
   <div id="congratsScreen" class="hidden">
@@ -85,6 +92,7 @@ let startTime = Date.now();
 let errorlessMode = false;
 let speechOn = true;
 let allProgress = [];
+let timerInterval;
 
 const promptEl = document.getElementById("promptEl");
 const wordUpper = document.getElementById("wordUpper");
@@ -101,6 +109,12 @@ const summaryAttempts = document.getElementById("summaryAttempts");
 const summaryCorrect = document.getElementById("summaryCorrect");
 const summaryAccuracy = document.getElementById("summaryAccuracy");
 const summaryTime = document.getElementById("summaryTime");
+const timerEl = document.getElementById("timerEl");
+const errorlessToggle = document.getElementById("errorlessToggle");
+
+errorlessToggle.addEventListener("change", () => {
+  errorlessMode = errorlessToggle.checked;
+});
 
 const pictogramMap = {
   apple: 41894,
@@ -150,8 +164,18 @@ function updateDisplays(word) {
 function preload(set) {
   currentSet = set;
   current = 0;
+  correctCount = 0;
+  totalCount = 0;
   startTime = Date.now();
+  updateTimer();
+  clearInterval(timerInterval);
+  timerInterval = setInterval(updateTimer, 1000);
   loadWord(current);
+}
+
+function updateTimer() {
+  const elapsed = Math.floor((Date.now() - startTime) / 1000);
+  timerEl.textContent = `⏱ Time: ${elapsed}s`;
 }
 
 function loadWord(index) {
@@ -162,6 +186,7 @@ function loadWord(index) {
   const id = pictogramMap[word];
   if (id) {
     imageEl.src = `https://static.arasaac.org/pictograms/${id}/${id}_300.png`;
+    imageEl.onerror = () => imageEl.src = `https://via.placeholder.com/150?text=${emojiMap[word] || word}`;
   } else {
     imageEl.src = `https://via.placeholder.com/150?text=${emojiMap[word] || word}`;
   }
@@ -176,6 +201,12 @@ function loadWord(index) {
 answerEl.addEventListener("input", () => {
   const word = currentSet[current];
   const val = answerEl.value.toLowerCase();
+
+  if (errorlessMode && val && val !== word[0]) {
+    answerEl.value = "";
+    return;
+  }
+
   if (val.length === 1) {
     if (val === word[0]) {
       feedbackEl.textContent = "✅ Correct!";
