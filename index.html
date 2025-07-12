@@ -123,9 +123,9 @@ errorlessToggle.addEventListener("change", () => {
 const pictogramMap = {
   apple: 41894,
   dog: 13720,
-  ball: 1285,
+  ball: 2020,
   car: 2114,
-  fish: 2571,
+  fish: 29684,
   hat: 3169,
   cat: 2175,
   frog: 2776,
@@ -193,7 +193,10 @@ function loadWord(index) {
   const fallback = `https://via.placeholder.com/150?text=${encodeURIComponent(emoji || word)}`;
 
   const setImage = (src) => {
-    imageEl.onerror = () => (imageEl.src = fallback);
+    imageEl.onerror = () => {
+      console.warn("Image failed. Fallback triggered for:", word);
+      imageEl.src = fallback;
+    };
     imageEl.src = src;
   };
 
@@ -203,8 +206,6 @@ function loadWord(index) {
     testImg.onload = () => setImage(arasaacUrl);
     testImg.onerror = () => setImage(fallback);
     testImg.src = arasaacUrl;
-  } else if (emoji) {
-    imageEl.src = fallback;
   } else {
     imageEl.src = fallback;
   }
