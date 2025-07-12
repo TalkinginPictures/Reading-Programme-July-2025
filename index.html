@@ -12,6 +12,10 @@
     }
     img {
       max-height: 200px;
+      width: 150px;
+      height: 150px;
+      background-color: #fff;
+      border: 2px solid #ccc;
     }
     .hidden {
       display: none;
@@ -183,16 +187,23 @@ function loadWord(index) {
   const word = currentSet[index];
   updateDisplays(word);
 
+  imageEl.src = "";
+
   const id = pictogramMap[word];
+  const fallback = `https://via.placeholder.com/150?text=${encodeURIComponent(emojiMap[word] || word)}`;
+
   if (id) {
-    imageEl.src = `https://static.arasaac.org/pictograms/${id}/${id}_300.png`;
-    imageEl.onerror = () => imageEl.src = `https://via.placeholder.com/150?text=${emojiMap[word] || word}`;
+    const testImg = new Image();
+    testImg.onload = () => (imageEl.src = testImg.src);
+    testImg.onerror = () => (imageEl.src = fallback);
+    testImg.src = `https://static.arasaac.org/pictograms/${id}/${id}_300.png`;
   } else {
-    imageEl.src = `https://via.placeholder.com/150?text=${emojiMap[word] || word}`;
+    imageEl.src = fallback;
   }
 
   promptEl.textContent = `What letter does ${word.toUpperCase()} begin with?`;
   speakPrompt(`What letter does ${word} begin with?`);
+
   feedbackEl.textContent = "";
   symbolEl.textContent = "";
   answerEl.value = "";
