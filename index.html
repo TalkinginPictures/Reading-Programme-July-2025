@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Talking In Pictures Reading Programme</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      background: #f0f0f0;
+      text-align: center;
+      padding: 20px;
+    }
+    img {
+      max-height: 200px;
+    }
+    .hidden {
+      display: none;
+    }
+    #initialLetter {
+      font-size: 72px;
+      font-weight: bold;
+      margin: 10px 0;
+    }
+    #symbolEl {
+      font-size: 48px;
+      margin-top: 10px;
+    }
+    #feedbackEl {
+      font-size: 20px;
+      color: green;
+    }
+    #summaryTable {
+      text-align: left;
+      margin: 0 auto;
+      max-width: 400px;
+    }
+    input[type="text"] {
+      font-size: 24px;
+      padding: 10px;
+    }
+    button {
+      font-size: 20px;
+      padding: 10px 20px;
+      margin: 10px;
+    }
+  </style>
+</head>
+<body>
+
+  <a href="https://www.talkinginpictures.co.uk">
+    <img src="https://www.talkinginpictures.co.uk/tip-logo.png" alt="Talking in Pictures Logo" height="80">
+  </a>
+  <h1>Reading Programme</h1>
+
+  <div id="gameArea">
+    <p id="promptEl"></p>
+    <img id="imageEl" src="" alt="Prompt image"><br>
+    <div class="word-display">
+      <strong id="wordUpper"></strong><br>
+      <em id="wordLower"></em>
+    </div>
+    <div id="initialLetter"></div>
+    <input id="answerEl" type="text" autocomplete="off"><br>
+    <p id="feedbackEl"></p>
+    <p id="symbolEl"></p>
+  </div>
+
+  <div id="congratsScreen" class="hidden">
+    <p class="congrats">🎉 Congratulations! You completed the round!</p>
+    <div id="summaryTable"></div>
+    <p id="summaryAttempts"></p>
+    <p id="summaryCorrect"></p>
+    <p id="summaryAccuracy"></p>
+    <p id="summaryTime"></p>
+    <button onclick="startNextRound()">Start Next Round</button>
+  </div>
+
+  <script>
+let phase = "alphabet";
+let round = 1;
+let current = 0;
+let correctCount = 0;
+let totalCount = 0;
+let startTime = Date.now();
+let errorlessMode = false;
+let speechOn = true;
+let allProgress = [];
+
+const promptEl = document.getElementById("promptEl");
+const wordUpper = document.getElementById("wordUpper");
+const wordLower = document.getElementById("wordLower");
+const initialLetter = document.getElementById("initialLetter");
+const answerEl = document.getElementById("answerEl");
+const feedbackEl = document.getElementById("feedbackEl");
+const symbolEl = document.getElementById("symbolEl");
+const imageEl = document.getElementById("imageEl");
+const gameArea = document.getElementById("gameArea");
+const congratsScreen = document.getElementById("congratsScreen");
+const summaryTable = document.getElementById("summaryTable");
+const summaryAttempts = document.getElementById("summaryAttempts");
+const summaryCorrect = document.getElementById("summaryCorrect");
+const summaryAccuracy = document.getElementById("summaryAccuracy");
+const summaryTime = document.getElementById("summaryTime");
+
+const pictogramMap = {
+  apple: 41894,
+  dog: 13720,
+  ball: 1285,
+  car: 2114,
+  fish: 2571,
+  hat: 3169,
+  cat: 2175,
+  frog: 2776,
+  sun: 10743,
+  tree: 11549
+};
+
+const emojiMap = {
+  apple: "🍎",
+  dog: "🐶",
+  ball: "⚽",
+  car: "🚗",
+  fish: "🐟",
+  hat: "🎩",
+  cat: "🐱",
+  frog: "🐸",
+  sun: "☀️",
+  tree: "🌳"
+};
+
+const wordSets = {
+  1: ["apple", "dog", "ball", "car", "fish", "egg", "goat", "hat", "ice", "jug", "kite", "lion", "moon", "net", "owl", "pen", "queen", "rat", "sun", "top", "urn", "van", "web", "xray", "yak", "zebra"]
+};
+
+let currentSet = [];
+
+function speakPrompt(text) {
+  if (!speechOn) return;
+  const utter = new SpeechSynthesisUtterance(text);
+  speechSynthesis.speak(utter);
+}
+
+function updateDisplays(word) {
+  wordUpper.textContent = word.toUpperCase();
+  wordLower.textContent = word.toLowerCase();
+  initialLetter.textContent = phase === "alphabet" ? word[0].toUpperCase() : "";
+  initialLetter.style.color = "black";
+}
+
+function preload(set) {
+  currentSet = set;
+  current = 0;
+  startTime = Date.now();
+  loadWord(current);
+}
+
+function loadWord(index) {
+  if (index >= currentSet.length) return;
+  const word = currentSet[index];
+  updateDisplays(word);
+
+  const id = pictogramMap[word];
+  if (id) {
+    imageEl.src = `https://static.arasaac.org/pictograms/${id}/${id}_300.png`;
+  } else {
+    imageEl.src = `https://via.placeholder.com/150?text=${emojiMap[word] || word}`;
+  }
+
+  promptEl.textContent = `What letter does ${word.toUpperCase()} begin with?`;
+  speakPrompt(`What letter does ${word} begin with?`);
+  feedbackEl.textContent = "";
+  symbolEl.textContent = "";
+  answerEl.value = "";
+}
+
+answerEl.addEventListener("input", () => {
+  const word = currentSet[current];
+  const val = answerEl.value.toLowerCase();
+  if (val.length === 1) {
+    if (val === word[0]) {
+      feedbackEl.textContent = "✅ Correct!";
+      symbolEl.textContent = `${emojiMap[word] || "🎉"} = ${word}`;
+      current++;
+      setTimeout(() => loadWord(current), 1000);
+    } else {
+      feedbackEl.textContent = "❌ Try again";
+      initialLetter.style.color = "red";
+    }
+  }
+});
+
+preload(wordSets[1]);
+  </script>
+
+</body>
+</html>
